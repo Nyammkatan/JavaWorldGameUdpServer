@@ -149,14 +149,34 @@ public class World {
 		return new DS(World.DS_DETAIL).setRandom(Server.random).generate(0.02f).bringToZeroToOne().map;
 	}
 	
+	public void setWaterToPerc(float perc, float[][] water) {
+		float percWater = this.getAmountOfWaterInPerc(water);
+		boolean bigger = percWater > perc;
+		while (percWater <= perc-0.05f || percWater > perc+0.05f) {
+			for (int i=0; i < this.h; i++) {
+				for (int j=0; j < this.w; j++) {
+					if (bigger)
+						water[i][j] = Math.min(1f, water[i][j]+0.01f);
+					else
+						water[i][j] = Math.min(1f, water[i][j]-0.01f);
+					
+				}
+			}
+			percWater = this.getAmountOfWaterInPerc(water);
+			
+		}
+		
+	}
+	
 	public float[][] generateWater(float perc) {
 		float[][] test = getDSforWater();
-		float percWater = this.getAmountOfWaterInPerc(test);
+		/*float percWater = this.getAmountOfWaterInPerc(test);
 		while (percWater <= perc-0.05f || percWater > perc+0.05f) {
 			test = getDSforWater();
 			percWater = this.getAmountOfWaterInPerc(test);
 			
-		}
+		}*/
+		this.setWaterToPerc(perc, test);
 		for (int i=0; i < this.h; i++) {
 			for (int j=0; j < this.w; j++) {
 				if (test[i][j] < World.WATER_EDGE)
