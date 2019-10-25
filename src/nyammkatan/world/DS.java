@@ -136,22 +136,6 @@ public class DS {
 		
 	}
 	
-	public DS generateLeft(float roughness, DS parent) {
-		DS self = this;
-		//this.set(0, 0, self.max / 2);
-		//this.set(0, this.max, self.max / 2);
-		for (int i = 0; i < self.size; i++) {
-			self.map[0][i] = parent.map[i][this.max];
-		}
-		
-		this.set(this.max, 0, self.max / 2);
-		this.set(this.max, this.max, self.max / 2);
-		
-		divide(this.max, roughness);
-		return this;
-		
-	}
-	
 	public DS generate(float roughness) {
 		DS self = this;
 		this.set(0, 0, self.max / 2);

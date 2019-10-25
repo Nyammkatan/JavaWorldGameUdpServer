@@ -33,6 +33,7 @@ public class World {
 	public static final int SEW_FLOOR = 12;
 	public static final int WATER = 20;
 	public static final int LAVA = 21;
+	public static final int WATER_DEEP = 22;
 	
 	public static final int DS_DETAIL = 10;
 	
@@ -61,6 +62,7 @@ public class World {
 		BLOCK_COLORS.put(SEW_FLOOR, new Color(0, 100, 0));
 		BLOCK_COLORS.put(WATER, new Color(0, 0, 255));
 		BLOCK_COLORS.put(LAVA, new Color(255, 0, 0));
+		BLOCK_COLORS.put(WATER_DEEP, new Color(0, 0, 127));
 		
 	}
 
@@ -170,17 +172,14 @@ public class World {
 	
 	public float[][] generateWater(float perc) {
 		float[][] test = getDSforWater();
-		/*float percWater = this.getAmountOfWaterInPerc(test);
-		while (percWater <= perc-0.05f || percWater > perc+0.05f) {
-			test = getDSforWater();
-			percWater = this.getAmountOfWaterInPerc(test);
-			
-		}*/
 		this.setWaterToPerc(perc, test);
 		for (int i=0; i < this.h; i++) {
 			for (int j=0; j < this.w; j++) {
 				if (test[i][j] < World.WATER_EDGE)
 					this.array[i][j] = World.WATER;
+				if (test[i][j] < World.WATER_EDGE*0.72f)
+					this.array[i][j] = World.WATER_DEEP;
+				
 			}
 		}
 		this.generateBeach(test);
@@ -191,9 +190,7 @@ public class World {
 	public void generateBeach(float[][] test) {
 		for (int i=0; i < this.h; i++) {
 			for (int j=0; j < this.w; j++) {
-				if (test[i][j] < World.WATER_EDGE)
-					this.array[i][j] = World.WATER;
-				else
+				if (this.array[i][j] != World.WATER) {
 					if (test[i][j] >= World.WATER_EDGE+0.03f && test[i][j] < World.WATER_EDGE+0.07f)
 						if (this.isBlock(i, j))
 							this.array[i][j] = World.DIRT;
@@ -206,29 +203,25 @@ public class World {
 							this.array[i][j] = World.SAND_FLOOR;
 					if (test[i][j] >= World.WATER_EDGE && test[i][j] < World.WATER_EDGE+0.01f)
 						this.array[i][j] = World.SAND_FLOOR;
+				}
 			}
 		}
 		
 	}
 	
-	public void maskCircle(float mdist) {
-		float[][] a = new float[this.h][this.w];
-		int size = this.w;
-		for (int i=0; i < size; i++) {
-  			for (int j=0; j < size; j++) {
-  				float distance_x = Math.abs(j - size * 0.5f);
-  				float distance_y = Math.abs(i - size * 0.5f);
-  				float dist = (float) Math.sqrt(distance_x*distance_x + distance_y*distance_y);
-  				float max_width = size * 0.5f + mdist;
-  				float delta = dist / max_width;
-  				float gradient = delta * delta;
-  				a[i][j] = 1f;
-  				a[i][j] *= Math.max(0.0f, 1.0f - gradient);
-  				if (a[i][j] < World.WATER_EDGE)
-  					this.array[i][j] = World.WATER;
-  			}
+	public void generateRivers() {
+		float[][] riversMap = new DS(World.DS_DETAIL).setRandom(Server.random).generate(1f).bringToZeroToOne().map;
+		this.drawTestImage(riversMap, "testtest");
+		for (int i=0; i < this.h; i++) {
+			for (int j=0; j < this.w; j++) {
+				if (riversMap[i][j] < World.WATER_EDGE && riversMap[i][j] >= World.WATER_EDGE-0.02f) {
+					if (this.array[i][j] != World.FIRE && this.array[i][j] != World.FIRE_FLOOR)
+						this.array[i][j] = World.WATER;
+					
+				}
+			}
 		}
-		this.generateBeach(a);
+		//this.generateBeach(riversMap);
 		
 	}
 	
@@ -239,6 +232,8 @@ public class World {
 		this.setBiom(biomsMap, 0.45f, 0.6f, World.JUNGLE);
 		this.setBiom(biomsMap, 0.35f, 0.42f, World.SAND);
 		this.setBiom(biomsMap, 0.02f, 0.25f, World.ICE);
+		this.generateRivers();
+		this.generateRivers();
 		this.generateWater(0.32f);
 		
 	}
