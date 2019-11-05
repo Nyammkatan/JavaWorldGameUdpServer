@@ -7,6 +7,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.Selector;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -21,7 +24,7 @@ public class Server {
 	
 	public HashMap<SocketAddress, Client> clientList = new HashMap<SocketAddress, Client>();
     public int maxPacketNumberRange = 1000;
-    public int disconnectTime = 2000;
+    public int disconnectTime = 500;
     
     public Selector selector;
     public DatagramChannel channel;
@@ -89,11 +92,6 @@ public class Server {
     	
     }
     
-    public void removeClient(SocketAddress addr) {
-    	this.clientList.remove(addr);
-    	
-    }
-    
     public HashMap<SocketAddress, Client> getClientList(){
     	return this.clientList;
     	
@@ -111,6 +109,10 @@ public class Server {
             else {
                 c = getClientList().get(m.getSocketAddress());
                 
+            }
+            int count = m.getData().length() - m.getData().replace("}", "").length();
+            if (count > 1) {
+            	m.setData(m.getData().substring(0, m.getData().indexOf("}")+1));
             }
             Packet packet = new Packet(m.getData());
             receivingMessageFromClient(c, packet);
@@ -143,16 +145,18 @@ public class Server {
     
     }
 
+    public Set<SocketAddress> setToDelete = new HashSet<SocketAddress>();
     public void removeDisconnectedClients() {
-    	Set<SocketAddress> keys = this.getClientList().keySet();
-    	for (SocketAddress key : keys) {
+    	setToDelete.clear();
+    	for (SocketAddress key : this.clientList.keySet()) {
     		Client client = getClientList().get(key);
     		if (!client.checkConnection(disconnectTime)) {
-    			removeClient(key);
-                worker.disconnectOfClient(client);
-    			
+    			setToDelete.add(key);
     		}
-    		
+    	}
+    	for (SocketAddress key: setToDelete) {
+    		worker.disconnectOfClient(this.getClientList().get(key));
+    		this.getClientList().remove(key);
     	}
                 
     }
@@ -169,6 +173,12 @@ public class Server {
             }
     		
     	}
+    	
+    }
+    
+    public static int getIntFromPacket(Object o) {
+    	Number n = (Number) o;
+    	return n.intValue();
     	
     }
 

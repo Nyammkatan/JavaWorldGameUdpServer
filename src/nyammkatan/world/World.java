@@ -12,6 +12,10 @@ import nyammkatan.server.Server;
 
 public class World {
 	
+	public static final int TILE_SIZE = 16;
+	public static final int SCREEN_WIDTH = 640;
+	public static final int SCREEN_SCALE = 2;
+	
 	public int w = 1000;
 	public int h = 1000;
 
@@ -31,9 +35,9 @@ public class World {
 	public static final int NEON_FLOOR = 14;
 	public static final int SEW = 13;
 	public static final int SEW_FLOOR = 12;
-	public static final int WATER = 20;
-	public static final int LAVA = 21;
-	public static final int WATER_DEEP = 22;
+	public static final int WATER = 16;
+	public static final int LAVA = 17;
+	public static final int WATER_DEEP = 18;
 	
 	public static final int DS_DETAIL = 10;
 	
@@ -195,6 +199,7 @@ public class World {
 						if (this.isBlock(i, j))
 							this.array[i][j] = World.DIRT;
 						else
+							if (this.array[i][j] != World.LAVA)
 							this.array[i][j] = World.DIRT_FLOOR;
 					if (test[i][j] >= World.WATER_EDGE && test[i][j] < World.WATER_EDGE+0.03f)
 						if (this.isBlock(i, j))
@@ -209,13 +214,26 @@ public class World {
 		
 	}
 	
+	public int[] notForWaterBlocks = {
+		World.FIRE, World.FIRE_FLOOR, World.LAVA
+		
+	};
+	public boolean isNotForWaterBlock(int block) {
+		for (int i=0; i < this.notForWaterBlocks.length; i++) {
+			if (block == this.notForWaterBlocks[i]) {
+				return false;
+			}
+		}
+		return true;
+		
+	}
+	
 	public void generateRivers() {
 		float[][] riversMap = new DS(World.DS_DETAIL).setRandom(Server.random).generate(1f).bringToZeroToOne().map;
-		this.drawTestImage(riversMap, "testtest");
 		for (int i=0; i < this.h; i++) {
 			for (int j=0; j < this.w; j++) {
 				if (riversMap[i][j] < World.WATER_EDGE && riversMap[i][j] >= World.WATER_EDGE-0.02f) {
-					if (this.array[i][j] != World.FIRE && this.array[i][j] != World.FIRE_FLOOR)
+					if (this.isNotForWaterBlock(this.array[i][j]))
 						this.array[i][j] = World.WATER;
 					
 				}
@@ -225,16 +243,50 @@ public class World {
 		
 	}
 	
+	public void createLava(float[][] biomsMap) {
+		for (int i=0; i < this.h; i++) {
+			for (int j=0; j < this.w; j++) {
+				if (biomsMap[i][j] >= 0.75f && biomsMap[i][j] < 0.8f) {
+					this.array[i][j] = World.LAVA;
+					
+				}
+				
+			}
+			
+		}
+		
+	}
+	
 	public void generateBioms(float res) {
 		float[][] biomsMap = new DS(World.DS_DETAIL).setRandom(Server.random).generate(1f).bringToZeroToOne().map;
 		this.setBiom(biomsMap, 0.9f, 1f, World.ICE);
-		this.setBiom(biomsMap, 0.7f, 0.832f, World.FIRE);
+		this.setBiom(biomsMap, 0.7f, 0.87f, World.FIRE);
 		this.setBiom(biomsMap, 0.45f, 0.6f, World.JUNGLE);
 		this.setBiom(biomsMap, 0.35f, 0.42f, World.SAND);
 		this.setBiom(biomsMap, 0.02f, 0.25f, World.ICE);
+		this.createLava(biomsMap);
 		this.generateRivers();
 		this.generateRivers();
 		this.generateWater(0.32f);
+		
+	}
+	
+	public void generateRuins() {
+		int count = 8+Server.random.nextInt(4);
+		for (int i=0; i < count; i++) {
+			int w = Server.random.nextInt(20)+5;
+			int h = Server.random.nextInt(20)+5;
+			int x = Server.random.nextInt(1000-w*2);
+			int y = Server.random.nextInt(1000-h*2);
+			for (int ii=y; ii < y+h; ii++) {
+				for (int jj=x; jj < x+w; jj++) {
+					this.array[ii][jj] = World.RUINS;
+					
+				}
+				
+			}
+			
+		}
 		
 	}
 	
@@ -242,6 +294,7 @@ public class World {
 		System.out.println("Generating world");
 		this.generateCaves(res);
 		this.generateBioms(res);
+		//this.generateRuins();
 		
 	}
 	

@@ -44,7 +44,7 @@ public abstract class GameHandler {
 				e.printStackTrace();
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
-				//e.printStackTrace();
+				e.printStackTrace();
 			}
         	
             long now = System.nanoTime();
@@ -82,7 +82,7 @@ public abstract class GameHandler {
     	for (Client client : this.server.getClientList().values()) {
             if (client.ready) {
                 Set<Integer> idListKeys = getFilterIdKeys(client, this.allGameObjects.keySet());
-                Packet packet = client.createSimplePacket(Packet.ID_PACKET);
+                Packet packet = client.createSimplePacket(P_IDS.ID_PACKET);
                 JSONArray id_array = new JSONArray();
                 idListKeys.forEach((e)->{
                 	id_array.add(e);
@@ -90,7 +90,7 @@ public abstract class GameHandler {
                 packet.putData("id", id_array);
                 client.send(packet);
                 for (Integer key: idListKeys) {
-                	packet = client.createSimplePacket(Packet.STATE_PACKET);
+                	packet = client.createSimplePacket(P_IDS.STATE_PACKET);
                     packet = allGameObjects.get(key).getState(packet);
                     client.send(packet);
                 	

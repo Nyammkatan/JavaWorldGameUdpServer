@@ -22,5 +22,10 @@ public class Message {
 		return data;
 		
 	}
+	
+	public void setData(String s) {
+		this.data = s;
+		
+	}
 
 }

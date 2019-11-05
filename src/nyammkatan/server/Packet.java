@@ -16,8 +16,6 @@ public class Packet {
 	public static final int SIMPLE = 0;
 	public static final int IMPORTANT = 1;
 	
-	public static final int ID_PACKET = 0;
-	public static final int STATE_PACKET = 1;
 	public static final int RESPONSE = 2;
 	
 	public Packet(int im, int p_id, int packetNumber) {

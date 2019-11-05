@@ -7,6 +7,8 @@ import org.json.simple.JSONObject;
 
 public class Client {
 	
+	public Object binding;
+	
 	public boolean ready = false;
 	ArrayList<Packet> iMessages = new ArrayList<Packet>();
 
